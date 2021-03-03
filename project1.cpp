@@ -18,24 +18,25 @@ float box_muller(float m, float s);
 
 int main() {
 
-	float mean1[2] = { 1, 1 };
-	float cov1[2] = { 1 , 1 };
-	float mean2[2] = { 4, 4 };
-	float cov2[2] = { 1 , 1 };
-	float setA[2][2000];
-	
-	for (int i = 0; i < 2000; i++)
+    float cov1[2][2]= {{1, 0},
+                        {0, 1}};
+    float cov2[2][2]= {{1, 0},
+                        {0, 1}};
+    float mean1[2]= {1, 1};
+    float mean2[2]= {4, 4};
+
+    float setA[2][200000];
+
+    for (int i = 0; i < 2000; i++)
 	{
-		setA[0][i] = box_muller(mean1[0], cov1[0]);
-		setA[1][i] = box_muller(mean1[1], cov1[1]);
+		setA[0][i] = box_muller(mean1[0], cov1[0][0]);
+		setA[1][i] = box_muller(mean1[1], cov1[1][1]);
 	}
-	
 	for (int i = 0; i < 2000; i++)
 	{
 		cout << "x = " << setA[0][i] << " y = " << setA[1][i] << endl;
 	}
-
-    return 0;
+	return 0;
 }
 
 float ranf(float m) {
@@ -65,16 +66,16 @@ float box_muller(float m, float s)	/* normal random variate generator */
 	else
 	{
 		do {
-			x1 = 2.0 * ranf(1) - 1.0;
-			x2 = 2.0 * ranf(1) - 1.0;
+			x1 = 2.0 * ranf(m) - 1.0;
+			x2 = 2.0 * ranf(m) - 1.0;
 			w = x1 * x1 + x2 * x2;
-		} while (w >= 1.0);
+		} while ( w >= 1.0 );
 
-		w = sqrt((-2.0 * log(w)) / w);
+		w = sqrt( (-2.0 * log( w ) ) / w );
 		y1 = x1 * w;
 		y2 = x2 * w;
 		use_last = 1;
 	}
 
-	return(m + y1 * s);
+	return( m + y1 * s );
 }
