@@ -6,15 +6,16 @@ Version History edits
 0.1 Built ranf and box_muller function -Brendan Aguiar
 0.2 Edited ranf and box muller function -Julia Adamczyk/Brendan Aguiar
 0.2 Assigned mean and covariance matrices and started setA -Julia Adamczyk/Brendan Aguiar
+0.3 added the method to calculate probability - Julia Adamczyk
 */
 
 #include <iostream>
 #include <math.h>
-
+#include <cmath>
 using namespace std;
 float ranf(float m);
 float box_muller(float m, float s);
-
+float calculate_probability(float value, float m, float s);
 
 int main() {
 
@@ -27,15 +28,24 @@ int main() {
 
     float setA[2][200000];
 
-    for (int i = 0; i < 2000; i++)
+    for (int i = 0; i < 200000; i++)
 	{
 		setA[0][i] = box_muller(mean1[0], cov1[0][0]);
 		setA[1][i] = box_muller(mean1[1], cov1[1][1]);
 	}
-	for (int i = 0; i < 2000; i++)
+	for (int i = 6000; i < 10000; i++)
 	{
 		cout << "x = " << setA[0][i] << " y = " << setA[1][i] << endl;
 	}
+
+	float probabilility;
+	//testing
+	for(int i = 0; i < 20; i++) {
+        //cout << "x = " << setA[0][i] << endl;
+        probability = calculate_probability(setA[0][i], mean1[0], cov1[0][0]);
+        cout << probability << endl;
+	}
+
 	return 0;
 }
 
@@ -78,4 +88,7 @@ float box_muller(float m, float s)	/* normal random variate generator */
 	}
 
 	return( m + y1 * s );
+}
+float calculate_probability(float value, float m, float s){
+    return (exp(-(value-m)*(value-m)/(2.0*s*s))/(s*sqrt(2.0*M_PI)));
 }
