@@ -1,6 +1,6 @@
 /*
 Code written and edited by Julia Adamczyk and Brendan Aguiar
-Version: 0.4
+Version: 0.6
 
 Version History edits
 0.1 Built ranf and box_muller function -Brendan Aguiar
@@ -9,10 +9,11 @@ Version History edits
 0.3 added the method to calculate probability - Julia Adamczyk
 0.4 Started Classify and Case1 Function - Brendan Aguiar
 0.5 Completed case1, case3, and euclidean discriminant functions (need a review) - Julia Adamczyk
+0.6 Reviewed discriminant functions. Cleaned up descriptions - Brendan Aguiar
 */
 #include <iostream>
 #include <math.h>
-#include <list>
+#include <list> 
 
 #define PLACEHOLDER 1
 using namespace std;
@@ -23,6 +24,7 @@ void printDistr(list <float> setA[]);
 void classify(list <float> set[], float m1[], float s1[][2], float m2[], float s2[][2], float r[]);
 float case1(list<float>::iterator i1, list<float>::iterator i2, float m[], float s, float prior);
 float case3(list<float>::iterator i1, list<float>::iterator i2, float m[], float s[][2], float prior);
+float euclidean(list<float>::iterator i1, list<float>::iterator i2, float m[]);
 float determinant_of_diagonal(float mat[][2]);
 
 int main() {
@@ -36,18 +38,18 @@ int main() {
 	list <float> setA[2];
 	float errorRates[4]; //r[0] = class 1 missclassification, r[1] = class 2 missclassification,
 					// r[2] = Total missclassification, r[3] = Bhattacharyya bound
-
+	
 
 	//Set A generation
 	generateDistr(setA, mean1, cov1, mean2, cov2);
-
+	
 	//Classifcation
 	classify(setA, mean1, cov1, mean2, cov2, errorRates);
-
-    for(int i = 0; i < 4; i++) {
-        cout << errorRates[i] << endl;
-    }
+	
 	//Report and log generation
+	for (int i = 0; i < 4; i++) {
+		cout << errorRates[i] << endl;
+	}
 	//printDistr(setA);
 
     return 0;
@@ -103,12 +105,12 @@ Description: Generates gaussian sample distribution using box muller and provide
 */
 void generateDistr(list <float> set[], float m1[], float s1[][2], float m2[], float s2[][2])
 {
-	for (int i = 1; i <= 60000; i++) //sample generation for class w1
+	for (int i = 1; i <= 40000; i++) //sample generation for class w1
 	{
-		set[0].push_back(box_muller(m1[0], s1[0][0])); //pushes x value
+		set[0].push_back(box_muller(m1[0], s1[0][0])); //pushes x value 
 		set[1].push_back(box_muller(m1[1], s1[1][1])); //pushes y value
 	}
-	for (int i = 60001; i <= 200000; i++)//sample generation for class w2
+	for (int i = 40001; i <= 200000; i++)//sample generation for class w2
 	{
 		set[0].push_back(box_muller(m2[0], s2[0][0])); //pushes x value
 		set[1].push_back(box_muller(m2[1], s2[1][1])); //pushes y value
@@ -118,7 +120,7 @@ void generateDistr(list <float> set[], float m1[], float s1[][2], float m2[], fl
 /*
 Description: Prints sample set to console. Could be modified to print to file.
 */
-void printDistr(list <float> set[])
+void printDistr(list <float> set[]) 
 {
 	int it3 = 1;
 	list<float>::iterator it2 = set[1].begin();
@@ -131,23 +133,23 @@ void printDistr(list <float> set[])
 }
 
 /*
-Description: Checks covariances of classes to decide determinant case. Generates P(w1/x) and P(w2/x).
-Uses logic from minimum error rate: Decides w1 if P(w1/x) > P(w2/x), else decides w2.
+Description: Checks covariances of classes to decide discriminant case. Generates P(w1/x) and P(w2/x).
+Uses logic from minimum error rate: Decides w1 if P(w1/x) > P(w2/x), else decides w2. 
 Increments misclassifcation observations for class 1.
 */
 void classify(list <float> set[], float m1[], float s1[][2], float m2[], float s2[][2], float r[])
 {
 	int miss1 = 0;//missclassification incrementor
 	int miss2 = 0;//missclassification incrementor
-	float prior1 = .3;//probability of class 1 60,000/200,000
-	float prior2 = .7;//probability of class 2 140,000/200,000
+	float prior1 = .3;//probability of class 1 40,000/200,000
+	float prior2 = .7;//probability of class 1 40,000/200,000
 
 	list<float>::iterator it1 = set[0].begin();
 	list<float>::iterator it2 = set[1].begin();
 	if (s1[0][0] == s2[0][0] && s1[1][1] == s2[1][1]) //Case I where covariances are equal
 	{
 		float s = s1[1][1];
-		for (int i = 1; i <= 60000; i++)//samples
+		for (int i = 1; i <= 40000; i++)//w1 samples should hold more weight in g1
 		{
 			float g1 = case1(it1, it2, m1, s, prior1);//g1(x) = P(w1/x)
 			float g2 = case1(it1, it2, m2, s, prior2);//g2(x) = P(w2/x)
@@ -156,25 +158,25 @@ void classify(list <float> set[], float m1[], float s1[][2], float m2[], float s
 			++it1;
 			++it2;
 		}
-
-		for (int i = 60001; i <= 200000; i++)// w2 samples
+		for (int i = 40000; i <= 200000; i++)// w2 samples should hold more weight in g2
 		{
-			float g1 = PLACEHOLDER;//g1(x) = P(w1/x)
-			float g2 = PLACEHOLDER;//g2(x) = P(w2/x)
-			if (g1 <= g2) //if w1 is missclassied
+			float g1 = case1(it1, it2, m1, s, prior1);//g1(x) = P(w1/x)
+			float g2 = case1(it1, it2, m1, s, prior1);
+			if (g1 > g2) //if w2 is missclassied
 				miss2++; //increments missclassification rate
+			++it1;
+			++it2;
 		}
-
 	}
-
+	
 	else //Case III where covariances are unequal
 	{
 
 	}
 
 	//Error Calculations
-	r[0] = miss1 / 60000;
-	r[1] = miss2 / 140000;
+	r[0] = miss1 / 40000;
+	r[1] = miss2 / 160000;
 	r[2] = (miss1 + miss2) / 200000;
 	r[3] = PLACEHOLDER;// Bhattacharyya bound
 }
@@ -184,34 +186,35 @@ Description: Returns the discriminant of case I where covariances of class 1 and
 */
 float case1(list<float>::iterator i1, list<float>::iterator i2, float m[], float s, float prior)
 {
-	float e = -(((*i1) - m[0]) * ((*i1) - m[0]) + ((*i2) - m[1]) * ((*i2) - m[1])); //euclideanDistance() or  ||x-m||^2
-    //ln is log()
-	return log(prior) + (e / (2 * s * s)); //formula for gi(x)
+	float e = euclidean(i1, i2, m); // ||x-m||^2
+	return log(prior) + (e / (2 * s * s));
 }
 
 float case3(list<float>::iterator i1, list<float>::iterator i2, float m[], float s[][2], float prior)
 {
-    float inverse_sx = 1/s[0][0];
-    float inverse_sy = 1/s[1][1];
-    float determinant = determinant_of_diagonal(s);
-
-    float addend1 = (*i1) * (-0.5*inverse_sx) * (*i1) + (*i2) * (-0.5*inverse_sy) * (*i2); //(x^t)*Wi*x
-    float addend2 = (inverse_sx * m[0] * (*i1)) + (inverse_sy * m[1] * (*i2)); //(wi)^t*x
-    float addend3 = -0.5*(m[0]*m[0]*inverse_sx + m[1]*m[1]*inverse_sy) - 0.5*determinant + log(prior); //wi0
-    return (addend1 + addend2 + addend3);
+	float inverse_sx = 1 / s[0][0];//should equal s[1][1]
+	float inverse_sy = 1 / s[1][1];//should equal s[0][0]
+	float determinant = determinant_of_diagonal(s);//inverse of determinate should be scaler for inverse_sx and inverse_sy
+	//See link for inverse matrices: https://www.mathsisfun.com/algebra/matrix-inverse.html
+	float addend1 = (*i1) * (-0.5 * inverse_sx) * (*i1) + (*i2) * (-0.5 * inverse_sy) * (*i2); //(x^t)*Wi*x
+	float addend2 = (inverse_sx * m[0] * (*i1)) + (inverse_sy * m[1] * (*i2)); //(wi)^t*x
+	float addend3 = -0.5 * (m[0] * m[0] * inverse_sx + m[1] * m[1] * inverse_sy) - 0.5 * log2(determinant) + log2(prior); //wi0
+	return (addend1 + addend2 + addend3);
 }
 
+/*
+Description: Returns the euclidean distance.
+*/
 float euclidean(list<float>::iterator i1, list<float>::iterator i2, float m[])
 {
-    return (((*i1) - m[0]) * ((*i1) - m[0]) + ((*i2) - m[1]) * ((*i2) - m[1])); //euclideanDistance() or  ||x-m||^2
+	return (((*i1) - m[0]) * ((*i1) - m[0]) + ((*i2) - m[1]) * ((*i2) - m[1])); //euclideanDistance() or  ||x-m||^2
 }
-
 
 float determinant_of_diagonal(float mat[][2])
 {
-    float det = 1;
-    for (int i = 0; i < 2; i++) {
-        det *= mat[i][i];
-    }
-    return det;
+	float det = 1;
+	for (int i = 0; i < 2; i++) {
+		det *= mat[i][i];
+	}
+	return det;
 }
