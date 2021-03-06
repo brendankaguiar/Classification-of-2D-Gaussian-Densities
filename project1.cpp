@@ -26,20 +26,33 @@ float case3(list<float>::iterator i1, list<float>::iterator i2, float m[], float
 float determinant_of_diagonal(float mat[][2]);
 
 int main() {
-	//Assignments
+
+	//Assignments for setA
+	list <float> setA[2];
 	float cov1[2][2] = { {1, 0},
 						{0, 1} };
 	float cov2[2][2] = { {1, 0},
 						{0, 1} };
 	float mean1[2] = { 1, 1 };
 	float mean2[2] = { 4, 4 };
-	list <float> setA[2];
+
+	//Assignments for setB
+	list <float> setB[2];
+	float cov3[2][2] = { {1, 0},
+						{0, 1} };
+	float cov4[2][2] = { {4, 0},
+						{0, 8} };
+	float mean3[2] = { 1, 1 };
+	float mean4[2] = { 4, 4 };
+
 	float errorRates[4]; //r[0] = class 1 missclassification, r[1] = class 2 missclassification,
 					// r[2] = Total missclassification, r[3] = Bhattacharyya bound
 
 
 	//Set A generation
 	generateDistr(setA, mean1, cov1, mean2, cov2);
+	//Set B generation
+	generateDistr(setB, mean3, cov3, mean4, cov4);
 
 	//Classifcation
 	classify(setA, mean1, cov1, mean2, cov2, errorRates);
