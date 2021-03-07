@@ -1,0 +1,5 @@
+Error Report for Set A:
+Class 1 Missclassification Rate: 0.000233333
+Class 2 Missclassification Rate: 0.2234
+Total Missclassification Rate: 0.15645
+Bhattacharyya bound: 0

@@ -13,6 +13,7 @@ Version History edits
 0.7 Completed classify function for case3, provide calculations for error rates, added global floats for sizes - Julia Adamczyk
 0.8 Implemented Bhattacharyya Bound, printErrorReport, classifyEuclidean, menu, and switch case - Brendan Aguiar
 */
+
 //Library and namespace inclusions
 #include <iostream>
 #include <math.h>
@@ -219,8 +220,8 @@ void classify(list <float> set[], float m1[], float s1[][2], float m2[], float s
 {
 	int miss1 = 0;//missclassification incrementor
 	int miss2 = 0;//missclassification incrementor
-	float prior1 = .3f;//probability of class 1 40,000/200,000
-	float prior2 = .7f;//probability of class 1 40,000/200,000
+	float prior1 = CLASS_1_SIZE / TOTAL_SIZE;//probability of class 1 60,000/200,000
+	float prior2 = CLASS_2_SIZE / TOTAL_SIZE;//probability of class 2 140,000/200,000
 
 	//decision boundary points when g1(x) == g2(x)
 	//for the future we need to store them somewhere to plot
@@ -371,8 +372,6 @@ void classifyEuclidean(list <float> set[], float m1[], float s1[][2], float m2[]
 {
 	int miss1 = 0;//missclassification incrementor
 	int miss2 = 0;//missclassification incrementor
-	float prior1 = .3f;//probability of class 1 40,000/200,000
-	float prior2 = .7f;//probability of class 1 40,000/200,000
 
 	list<float>::iterator it1 = set[0].begin();
 	list<float>::iterator it2 = set[1].begin();
