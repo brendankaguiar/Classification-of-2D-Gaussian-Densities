@@ -63,7 +63,7 @@ int main() {
 	float mean3[2] = { 1, 1 };
 	float mean4[2] = { 4, 4 };
 	float errorRates2[4];
-	
+
 	//Program Control
 	bool again = true;
 	int switch_on;
@@ -235,9 +235,9 @@ void classify(list <float> set[], float m1[], float s1[][2], float m2[], float s
 		float s = s1[1][1];
 		for (int i = 1; i <= 60000; i++)//w1 samples should hold more weight in g1
 		{
-			float g1 = case1(it1, it2, m1, s, prior1);//g1(x) = P(w1/x)
-			float g2 = case1(it1, it2, m2, s, prior2);//g2(x) = P(w2/x)
-			if (g1 >= g2) //if w1 is missclassied
+			float g1 = case1(it1, it2, m1, s, prior1);//g1(x)
+			float g2 = case1(it1, it2, m2, s, prior2);//g2(x)
+			if (g1 > g2) //if g1 is missclassied
 				miss1++; //increments missclassification rate
 			if (g1 == g2)
 				count_decision_boundary++;
@@ -248,7 +248,7 @@ void classify(list <float> set[], float m1[], float s1[][2], float m2[], float s
 		{
 			float g1 = case1(it1, it2, m1, s, prior1);//g1(x) = P(w1/x)
 			float g2 = case1(it1, it2, m2, s, prior2);
-			if (g1 < g2) //if w2 is missclassified
+			if (g1 < g2) //if g2 is missclassified
 				miss2++; //increments missclassification rate
 			if (g1 == g2)
 				count_decision_boundary++;
@@ -261,22 +261,22 @@ void classify(list <float> set[], float m1[], float s1[][2], float m2[], float s
 	}
 	else //Case III where covariances are unequal
 	{
-		for (int i = 1; i <= 40000; i++)//w1 samples should hold more weight in g1
+		for (int i = 1; i <= 60000; i++)//w1 samples should hold more weight in g1
 		{
-			float g1 = case3(it1, it2, m1, s1, prior1);//g1(x) = P(w1/x)
-			float g2 = case3(it1, it2, m2, s2, prior2);//g2(x) = P(w2/x)
-			if (g1 >= g2) //if w1 is missclassied
+			float g1 = case3(it1, it2, m1, s1, prior1);//g1(x)
+			float g2 = case3(it1, it2, m2, s2, prior2);//g2(x)
+			if (g1 < g2) //if w1 is missclassied
 				miss1++; //increments missclassification rate
 			if (g1 == g2)
 				count_decision_boundary++;
 			++it1;
 			++it2;
 		}
-		for (int i = 40001; i <= 200000; i++)// w2 samples should hold more weight in g2
+		for (int i = 60001; i <= 200000; i++)// w2 samples should hold more weight in g2
 		{
 			float g1 = case3(it1, it2, m1, s1, prior1);//g1(x) = P(w1/x)
 			float g2 = case3(it1, it2, m2, s2, prior2);
-			if (g1 < g2) //if w2 is missclassied
+			if (g1 > g2) //if w2 is missclassied
 				miss2++; //increments missclassification rate
 			if (g1 == g2)
 				count_decision_boundary++;
@@ -294,7 +294,7 @@ void classify(list <float> set[], float m1[], float s1[][2], float m2[], float s
 	r[0] = miss1 / CLASS_1_SIZE;
 	r[1] = miss2 / CLASS_2_SIZE;
 	r[2] = (miss1 + miss2) / TOTAL_SIZE;
-	r[3] = BatBound(m1, s1, m1, s2);// Bhattacharyya bound
+	r[3] = BatBound(m1, s1, m2, s2);// Bhattacharyya bound
 	cout << r[0] << " " << r[1] << " " << r[2] << " " << r[3] << endl;
 }
 
@@ -314,7 +314,7 @@ float case3(list<float>::iterator i1, list<float>::iterator i2, float m[], float
 	float determinant = determinant_of_diagonal(s);
 	float addend1 = (*i1) * (-0.5f * inverse_sx) * (*i1) + (*i2) * (-0.5f * inverse_sy) * (*i2); //(x^t)*Wi*x
 	float addend2 = (inverse_sx * m[0] * (*i1)) + (inverse_sy * m[1] * (*i2)); //(wi)^t*x
-	float addend3 = -0.5f * ((m[0] * m[0] * inverse_sx) + (m[1] * m[1] * inverse_sy) - 0.5f * log2(determinant) + log2(prior)); //wi0
+	float addend3 = -0.5f * ((m[0] * m[0] * inverse_sx) + (m[1] * m[1] * inverse_sy)) - 0.5f * log(determinant) + log(prior); //wi0
 	return (addend1 + addend2 + addend3);
 }
 
@@ -343,14 +343,14 @@ Description: Calculates and returns the Bhattacharyya bound.
 */
 float BatBound(float m1[], float s1[][2], float m2[], float s2[][2])
 {
-	float addend1 = pow(m1[0] - m2[0], 2) * (1 / (.5f * (s1[0][0] + s2[0][0]))) + (pow(m1[1] - m2[1], 2) * (1 / (.5f * (s1[1][1] + s2[1][1]))));
+	float addend1 = pow(m2[0] - m1[0], 2) * (1 / (.5f * (s1[0][0] + s2[0][0]))) + (pow(m2[1] - m1[1], 2) * (1 / (.5f * (s1[1][1] + s2[1][1]))));
 	addend1 = addend1 * .125f;
 	float mat1[2][2] = { {.5f * (s1[0][0] + s2[0][0]), 0},
 		{0, .5f * (s1[1][1] + s2[1][1])} };
 	float det1 = determinant_of_diagonal(mat1);
 	float det2 = determinant_of_diagonal(s1);
 	float det3 = determinant_of_diagonal(s2);
-	float addend2 = .5f * log2(det1 / (pow(det2, .5f) * pow(det3, .5f)));
+	float addend2 = .5f * log(det1 / (pow(det2, .5f) * pow(det3, .5f)));
 	return addend1 + addend2;
 }
 
@@ -375,39 +375,37 @@ void classifyEuclidean(list <float> set[], float m1[], float s1[][2], float m2[]
 
 	list<float>::iterator it1 = set[0].begin();
 	list<float>::iterator it2 = set[1].begin();
-	if (s1[0][0] == s2[0][0] && s1[1][1] == s2[1][1]) //Case I where covariances are equal
+	for (int i = 1; i <= 60000; i++)//w1 samples should hold more weight in g1
 	{
-		float s = s1[1][1];
-		for (int i = 1; i <= 60000; i++)//w1 samples should hold more weight in g1
-		{
-			float g1 = euclidean(it1, it2, m1);//g1(x) = P(w1/x)
-			float g2 = euclidean(it1, it2, m2);//g2(x) = P(w2/x)
-			if (g1 >= g2) //if w1 is missclassied
-				miss1++; //increments missclassification rate
-			if (g1 == g2)
+		float g1 = euclidean(it1, it2, m1);//g1(x) = P(w1/x)
+		float g2 = euclidean(it1, it2, m2);//g2(x) = P(w2/x)
+		if (g1 > g2) //if w1 is missclassied
+			miss1++; //increments missclassification rate
+		if (g1 == g2)
 
 			++it1;
-			++it2;
-		}
-		for (int i = 60001; i <= 200000; i++)// w2 samples should hold more weight in g2
-		{
-			float g1 = euclidean(it1, it2, m1);//g1(x) = P(w1/x)
-			float g2 = euclidean(it1, it2, m2);//g2(x) = P(w2/x)
-			if (g1 < g2) //if w2 is missclassied
-				miss2++; //increments missclassification rate
-			++it1;
-			++it2;
-		}
-		cout << "Number of samples of class 1 that are missclassified: " << miss1 << endl;
-		cout << "Number of samples of class 2 that are missclassified: " << miss2 << endl;
+		++it2;
 	}
+	for (int i = 60001; i <= 200000; i++)// w2 samples should hold more weight in g2
+	{
+		float g1 = euclidean(it1, it2, m1);//g1(x) = P(w1/x)
+		float g2 = euclidean(it1, it2, m2);//g2(x) = P(w2/x)
+		if (g1 < g2) //if w2 is missclassied
+			miss2++; //increments missclassification rate
+		++it1;
+		++it2;
+	}
+	cout << "Number of samples of class 1 that are missclassified: " << miss1 << endl;
+	cout << "Number of samples of class 2 that are missclassified: " << miss2 << endl;
+
 	//Error Calculations
 	cout << "Error rates for problem 1:" << endl;
 	r[0] = miss1 / CLASS_1_SIZE;
 	r[1] = miss2 / CLASS_2_SIZE;
 	r[2] = (miss1 + miss2) / TOTAL_SIZE;
-	r[3] = BatBound(m1, s1, m1, s2);// Bhattacharyya bound
+	r[3] = BatBound(m1, s1, m2, s2);// Bhattacharyya bound
 	cout << r[0] << " " << r[1] << " " << r[2] << " " << r[3] << endl;
+
 }
 
 /*
