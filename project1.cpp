@@ -1,6 +1,6 @@
 /*
 Code written and edited by Julia Adamczyk and Brendan Aguiar
-Version: 0.8
+Version: 0.9
 
 Version History edits
 0.1 Built ranf and box_muller function -Brendan Aguiar
@@ -12,6 +12,7 @@ Version History edits
 0.6 Reviewed discriminant functions. Cleaned up descriptions - Brendan Aguiar
 0.7 Completed classify function for case3, provide calculations for error rates, added global floats for sizes - Julia Adamczyk
 0.8 Implemented Bhattacharyya Bound, printErrorReport, classifyEuclidean, menu, and switch case - Brendan Aguiar
+0.9 Edited BhatBound and cleaned up code - Brendan Aguiar
 */
 
 //Library and namespace inclusions
@@ -36,7 +37,7 @@ float case1(list<float>::iterator i1, list<float>::iterator i2, float m[], float
 float case3(list<float>::iterator i1, list<float>::iterator i2, float m[], float s[][2], float prior);
 float euclidean(list<float>::iterator i1, list<float>::iterator i2, float m[]);
 float determinant_of_diagonal(float mat[][2]);
-float BatBound(float m1[], float s1[][2], float m2[], float s2[][2]);
+float BhatBound(float m1[], float s1[][2], float m2[], float s2[][2], float prior1, float prior2);
 void printMenu();
 void classifyEuclidean(list <float> set[], float m1[], float s1[][2], float m2[], float s2[][2], float r[]);
 void printErrorReport(float r[], string dataset);
@@ -222,14 +223,9 @@ void classify(list <float> set[], float m1[], float s1[][2], float m2[], float s
 	int miss2 = 0;//missclassification incrementor
 	float prior1 = CLASS_1_SIZE / TOTAL_SIZE;//probability of class 1 60,000/200,000
 	float prior2 = CLASS_2_SIZE / TOTAL_SIZE;//probability of class 2 140,000/200,000
-
-	//decision boundary points when g1(x) == g2(x)
-	//for the future we need to store them somewhere to plot
-	//i don't know if it works cause it comes up as 0 so we can't really do the decision boundary like that
-	float count_decision_boundary = 0;
-
 	list<float>::iterator it1 = set[0].begin();
 	list<float>::iterator it2 = set[1].begin();
+
 	if (s1[0][0] == s2[0][0] && s1[1][1] == s2[1][1]) //Case I where covariances are equal
 	{
 		float s = s1[1][1];
@@ -239,8 +235,6 @@ void classify(list <float> set[], float m1[], float s1[][2], float m2[], float s
 			float g2 = case1(it1, it2, m2, s, prior2);//g2(x)
 			if (g1 > g2) //if g1 is missclassied
 				miss1++; //increments missclassification rate
-			if (g1 == g2)
-				count_decision_boundary++;
 			++it1;
 			++it2;
 		}
@@ -250,14 +244,11 @@ void classify(list <float> set[], float m1[], float s1[][2], float m2[], float s
 			float g2 = case1(it1, it2, m2, s, prior2);
 			if (g1 < g2) //if g2 is missclassified
 				miss2++; //increments missclassification rate
-			if (g1 == g2)
-				count_decision_boundary++;
 			++it1;
 			++it2;
 		}
 		cout << "Number of samples of class 1 that are missclassified: " << miss1 << endl;
 		cout << "Number of samples of class 2 that are missclassified: " << miss2 << endl;
-		cout << "Decision boundary points:" << count_decision_boundary << endl;
 	}
 	else //Case III where covariances are unequal
 	{
@@ -267,8 +258,6 @@ void classify(list <float> set[], float m1[], float s1[][2], float m2[], float s
 			float g2 = case3(it1, it2, m2, s2, prior2);//g2(x)
 			if (g1 < g2) //if w1 is missclassied
 				miss1++; //increments missclassification rate
-			if (g1 == g2)
-				count_decision_boundary++;
 			++it1;
 			++it2;
 		}
@@ -278,23 +267,19 @@ void classify(list <float> set[], float m1[], float s1[][2], float m2[], float s
 			float g2 = case3(it1, it2, m2, s2, prior2);
 			if (g1 > g2) //if w2 is missclassied
 				miss2++; //increments missclassification rate
-			if (g1 == g2)
-				count_decision_boundary++;
 			++it1;
 			++it2;
 		}
 		cout << "Number of samples of class 1 that are missclassified: " << miss1 << endl;
 		cout << "Number of samples of class 2 that are missclassified: " << miss2 << endl;
-		cout << "Decision boundary points:" << count_decision_boundary << endl;
-		//Error Calculations
-		cout << "Error rates for problem 2:" << endl;
 	}
+
 	//Error Calculations
-	cout << "Error rates for problem 1:" << endl;
+	cout << "Error rates for problem 1 and 2:" << endl;
 	r[0] = miss1 / CLASS_1_SIZE;
 	r[1] = miss2 / CLASS_2_SIZE;
 	r[2] = (miss1 + miss2) / TOTAL_SIZE;
-	r[3] = BatBound(m1, s1, m2, s2);// Bhattacharyya bound
+	r[3] = BhatBound(m1, s1, m2, s2, prior1, prior2);// Bhattacharyya bound
 	cout << r[0] << " " << r[1] << " " << r[2] << " " << r[3] << endl;
 }
 
@@ -341,7 +326,7 @@ float determinant_of_diagonal(float mat[][2])
 /*
 Description: Calculates and returns the Bhattacharyya bound.
 */
-float BatBound(float m1[], float s1[][2], float m2[], float s2[][2])
+float BhatBound(float m1[], float s1[][2], float m2[], float s2[][2], float prior1, float prior2)
 {
 	float addend1 = pow(m2[0] - m1[0], 2) * (1 / (.5f * (s1[0][0] + s2[0][0]))) + (pow(m2[1] - m1[1], 2) * (1 / (.5f * (s1[1][1] + s2[1][1]))));
 	addend1 = addend1 * .125f;
@@ -351,7 +336,8 @@ float BatBound(float m1[], float s1[][2], float m2[], float s2[][2])
 	float det2 = determinant_of_diagonal(s1);
 	float det3 = determinant_of_diagonal(s2);
 	float addend2 = .5f * log(det1 / (pow(det2, .5f) * pow(det3, .5f)));
-	return addend1 + addend2;
+	float kBound = addend1 + addend2;
+	return sqrt(prior1 * prior2) * exp(kBound * (-1));
 }
 
 /*
@@ -361,7 +347,7 @@ void printMenu() {
 	cout << "Select from the following choices...\n1. Generate SetA \n2. Generate SetB \n3. Print SetA \n4. Print SetB";
 	cout << "\n5. Classify SetA \n6. Classify SetB \n7. Classify(Euclidean) SetA \n8. Classify(Euclidean) SetB \n9. Print SetA \n10. Print SetB";
 	cout << "\n11. Print Error Report SetA \n12. Print Error Report SetB \n13. Quit Program";
-	cout << "\n\nNote: Generate data before you classify it. Classify data before you generate an error report.\n\n";
+	cout << "\n\nNote: Generate data before you classify or print it. Classify data before you generate an error report.\n\n";
 	cout << "Choice: ";
 }
 
@@ -372,18 +358,18 @@ void classifyEuclidean(list <float> set[], float m1[], float s1[][2], float m2[]
 {
 	int miss1 = 0;//missclassification incrementor
 	int miss2 = 0;//missclassification incrementor
-
+	float prior1 = CLASS_1_SIZE / TOTAL_SIZE;//probability of class 1 60,000/200,000
+	float prior2 = CLASS_2_SIZE / TOTAL_SIZE;
 	list<float>::iterator it1 = set[0].begin();
 	list<float>::iterator it2 = set[1].begin();
+
 	for (int i = 1; i <= 60000; i++)//w1 samples should hold more weight in g1
 	{
 		float g1 = euclidean(it1, it2, m1);//g1(x) = P(w1/x)
 		float g2 = euclidean(it1, it2, m2);//g2(x) = P(w2/x)
 		if (g1 > g2) //if w1 is missclassied
 			miss1++; //increments missclassification rate
-		if (g1 == g2)
-
-			++it1;
+		++it1;
 		++it2;
 	}
 	for (int i = 60001; i <= 200000; i++)// w2 samples should hold more weight in g2
@@ -399,13 +385,12 @@ void classifyEuclidean(list <float> set[], float m1[], float s1[][2], float m2[]
 	cout << "Number of samples of class 2 that are missclassified: " << miss2 << endl;
 
 	//Error Calculations
-	cout << "Error rates for problem 1:" << endl;
+	cout << "Error rates for problem 3 and 4:" << endl;
 	r[0] = miss1 / CLASS_1_SIZE;
 	r[1] = miss2 / CLASS_2_SIZE;
 	r[2] = (miss1 + miss2) / TOTAL_SIZE;
-	r[3] = BatBound(m1, s1, m2, s2);// Bhattacharyya bound
+	r[3] = BhatBound(m1, s1, m2, s2, prior1, prior2);// Bhattacharyya bound
 	cout << r[0] << " " << r[1] << " " << r[2] << " " << r[3] << endl;
-
 }
 
 /*
