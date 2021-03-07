@@ -233,7 +233,7 @@ void classify(list <float> set[], float m1[], float s1[][2], float m2[], float s
 		{
 			float g1 = case1(it1, it2, m1, s, prior1);//g1(x)
 			float g2 = case1(it1, it2, m2, s, prior2);//g2(x)
-			if (g1 > g2) //if g1 is missclassied
+			if (g1 < g2) //if g1 is missclassied
 				miss1++; //increments missclassification rate
 			++it1;
 			++it2;
@@ -242,7 +242,7 @@ void classify(list <float> set[], float m1[], float s1[][2], float m2[], float s
 		{
 			float g1 = case1(it1, it2, m1, s, prior1);//g1(x) = P(w1/x)
 			float g2 = case1(it1, it2, m2, s, prior2);
-			if (g1 < g2) //if g2 is missclassified
+			if (g1 > g2) //if g2 is missclassified
 				miss2++; //increments missclassification rate
 			++it1;
 			++it2;
@@ -289,7 +289,7 @@ Description: Returns the discriminant of case I where covariances of class 1 and
 float case1(list<float>::iterator i1, list<float>::iterator i2, float m[], float s, float prior)
 {
 	float e = euclidean(i1, i2, m); // ||x-m||^2
-	return log(prior) + (e / (2 * s * s));
+	return log(prior) + (e / (2 * s * s)*(-1));
 }
 
 float case3(list<float>::iterator i1, list<float>::iterator i2, float m[], float s[][2], float prior)
@@ -365,18 +365,18 @@ void classifyEuclidean(list <float> set[], float m1[], float s1[][2], float m2[]
 
 	for (int i = 1; i <= 60000; i++)//w1 samples should hold more weight in g1
 	{
-		float g1 = euclidean(it1, it2, m1);//g1(x) = P(w1/x)
-		float g2 = euclidean(it1, it2, m2);//g2(x) = P(w2/x)
-		if (g1 > g2) //if w1 is missclassied
+		float g1 = euclidean(it1, it2, m1) * (-1);//g1(x) = P(w1/x)
+		float g2 = euclidean(it1, it2, m2) * (-1);//g2(x) = P(w2/x)
+		if (g1 < g2) //if w1 is missclassied
 			miss1++; //increments missclassification rate
 		++it1;
 		++it2;
 	}
 	for (int i = 60001; i <= 200000; i++)// w2 samples should hold more weight in g2
 	{
-		float g1 = euclidean(it1, it2, m1);//g1(x) = P(w1/x)
-		float g2 = euclidean(it1, it2, m2);//g2(x) = P(w2/x)
-		if (g1 < g2) //if w2 is missclassied
+		float g1 = euclidean(it1, it2, m1) * (-1);//g1(x) = P(w1/x)
+		float g2 = euclidean(it1, it2, m2) * (-1);//g2(x) = P(w2/x)
+		if (g1 > g2) //if w2 is missclassied
 			miss2++; //increments missclassification rate
 		++it1;
 		++it2;
