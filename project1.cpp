@@ -13,7 +13,7 @@ Version History edits
 0.7 Completed classify function for case3, provide calculations for error rates, added global floats for sizes - Julia Adamczyk
 0.8 Implemented Bhattacharyya Bound, printErrorReport, classifyEuclidean, menu, and switch case - Brendan Aguiar
 0.9 Edited BhatBound and cleaned up code - Brendan Aguiar
-1.0 Implemented the read_in function that will read sets from file
+1.0 Implemented the read_in function that will read sets from file - Julia Adamczyk
 */
 
 //Library and namespace inclusions
@@ -44,7 +44,8 @@ void classifyEuclidean(list <float> set[], float m1[], float s1[][2], float m2[]
 void printErrorReport(float r[], string dataset);
 
 //we can use this one instead of generating the set each time
-void read_from_file(ifstream &input_file, list <float> set[]);
+void read_from_file(ifstream& input_file, list <float> set[]);
+
 
 int main() {
 
@@ -111,11 +112,11 @@ int main() {
 			classifyEuclidean(setB, mean3, cov3, mean4, cov4, errorRates2);
 			break;
 		case 9:
-			//Print Set A distribution
+			//Print Set A distribution 
 			printDistr(setA);
 			break;
 		case 10:
-			//Print Set B distribution
+			//Print Set B distribution 
 			printDistr(setB);
 			break;
 		case 11:
@@ -419,15 +420,15 @@ void printErrorReport(float r[], string dataset)
 	fout.close();
 }
 
-void read_from_file(ifstream &input_file, list <float> dataset[]) {
+void read_from_file(ifstream& input_file, list <float> dataset[]) {
 
-    float x;
-    float y;
-    for(int index = 0; index < 200000; index++)
-    {
-        input_file >> x >> y;
-        cout << x << " " << y << endl;
-        dataset[0].push_back(x);
-        dataset[1].push_back(y);
-   	}
+	float x;
+	float y;
+	for (int index = 0; index < 200000; index++)
+	{
+		input_file >> x >> y;
+		cout << x << " " << y << endl;
+		dataset[0].push_back(x);
+		dataset[1].push_back(y);
+	}
 }
