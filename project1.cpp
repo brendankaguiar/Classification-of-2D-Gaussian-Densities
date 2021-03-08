@@ -70,6 +70,11 @@ int main() {
 	float mean4[2] = { 4, 4 };
 	float errorRates2[4];
 
+	//reading the data in from a file
+    ifstream inFile;
+    string filename1 = "SetA.txt";
+    string filename2 = "SetB.txt";
+
 	//Program Control
 	bool again = true;
 	int switch_on;
@@ -112,11 +117,11 @@ int main() {
 			classifyEuclidean(setB, mean3, cov3, mean4, cov4, errorRates2);
 			break;
 		case 9:
-			//Print Set A distribution 
+			//Print Set A distribution
 			printDistr(setA);
 			break;
 		case 10:
-			//Print Set B distribution 
+			//Print Set B distribution
 			printDistr(setB);
 			break;
 		case 11:
@@ -127,7 +132,19 @@ int main() {
 			//Print Error Report Set B
 			printErrorReport(errorRates2, "Set B");
 			break;
-		case 13:
+        case 13:
+			//Load Set A into the program
+            inFile.open(filename1, ios::in);
+			read_from_file(inFile, setA);
+			inFile.close();
+			break;
+		case 14:
+			//Load Set B into the program
+            inFile.open(filename2, ios::in);
+			read_from_file(inFile, setB);
+			inFile.close();
+			break;
+		case 15:
 			again = false;
 			break;
 		default:
@@ -351,7 +368,7 @@ Description: Prints menu for switch cases.
 void printMenu() {
 	cout << "Select from the following choices...\n1. Generate SetA \n2. Generate SetB \n3. Print SetA \n4. Print SetB";
 	cout << "\n5. Classify SetA \n6. Classify SetB \n7. Classify(Euclidean) SetA \n8. Classify(Euclidean) SetB \n9. Print SetA \n10. Print SetB";
-	cout << "\n11. Print Error Report SetA \n12. Print Error Report SetB \n13. Quit Program";
+	cout << "\n11. Print Error Report SetA \n12. Print Error Report SetB \n13. Load SetA \n14. Load SetB \n15. Quit Program";
 	cout << "\n\nNote: Generate data before you classify or print it. Classify data before you generate an error report.\n\n";
 	cout << "Choice: ";
 }
@@ -427,7 +444,6 @@ void read_from_file(ifstream& input_file, list <float> dataset[]) {
 	for (int index = 0; index < 200000; index++)
 	{
 		input_file >> x >> y;
-		cout << x << " " << y << endl;
 		dataset[0].push_back(x);
 		dataset[1].push_back(y);
 	}
